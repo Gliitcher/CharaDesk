@@ -1,0 +1,15 @@
+<resources>
+    <dimen name="CharaDesk">65sp</dimen>
+    <dimen name="Title">30sp</dimen>
+    <dimen name="MainText">30sp</dimen>
+    <dimen name="SubText">25sp</dimen>
+    <dimen name="NoteTitle">25sp</dimen>
+    <dimen name="NoteText">22sp</dimen>
+
+    <dimen name="paddingL">5dp</dimen>
+    <dimen name="paddingB">15dp</dimen>
+    <dimen name="paddingM">25dp</dimen>
+    <dimen name="marginTop">35dp</dimen>
+
+    <dimen name="bigGap">450dp</dimen>
+</resources>

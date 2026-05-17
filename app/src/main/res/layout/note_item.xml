@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    android:backgroundTint="@color/transparent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <include layout="@layout/note_menu"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_text_sub"
+            android:orientation="horizontal"
+            android:layout_gravity="center"
+            android:padding="@dimen/paddingL">
+            <androidx.cardview.widget.CardView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                app:cardCornerRadius="75dp"
+                app:cardElevation="0dp"
+                android:clickable="true"
+                android:focusable="true">
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/rounded_avatar"/>
+
+                <ImageView
+                    android:id="@+id/avatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_image_placeholder"
+                    android:scaleType="centerCrop" />
+            </androidx.cardview.widget.CardView>
+            <TextView
+                android:id="@+id/note_text"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Установить текст"
+                android:textColor="@color/black_title"
+                android:textSize="@dimen/SubText"
+                android:paddingTop="@dimen/paddingL"
+                android:paddingBottom="@dimen/paddingL"
+                android:paddingRight="@dimen/paddingB"
+                android:paddingLeft="@dimen/paddingB" />
+            <ImageButton
+                android:id="@+id/note_menu"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:scaleType="centerCrop"
+                android:onClick="onClickMenu"
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_buttons"
+                app:tint="@color/CharaBorder"
+                android:src="@drawable/icon_menu" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

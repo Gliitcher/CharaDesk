@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">CharaDesk</string>
+    <string name="my_notes">Мои заметки</string>
+    <string name="my_universe">Мои пространства</string>
+
+    <string name="password">Введите пароль...</string>
+    <string name="name_hint">Введите имя персонажа...</string>
+    <string name="choose_avatar">Выберите аватар</string>
+    <string name="title_hint">Введите заголовок...</string>
+    <string name="text_hint">Введите текст...</string>
+    <string name="new_note">Новая заметка</string>
+    <string name="text_empty">Текст не может быть пустым</string>
+    <string name="create">Создать</string>
+    <string name="cancel">Отменить</string>
+    <string name="create_hint">Введите имя заметки</string>
+    <string name="untitle">Безымянная</string>
+
+    <string name="single_block">Одиночный блок</string>
+    <string name="title_block">Титульный блок</string>
+    <string name="image_block">Изображение</string>
+    <string name="add_block">Добавить блок</string>
+
+    <string name="delete_block">Удалить блок?</string>
+    <string name="delete_note">Удалить заметку?</string>
+    <string name="delete_universe">Удалить пространство?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+
+    <string name="error_avatar">Не удалось сохранить аватар</string>
+    <string name="error_image">Не удалось загрузить изображение</string>
+    <string name="error_image_change">Не удалось заменить изображение</string>
+    <string name="error_export_note">Не удалось экспортировать заметку</string>
+    <string name="error_import_note">Не удалось импортировать заметку</string>
+
+    <string name="export_note">Заметка экспортирована</string>
+    <string name="import_note">Заметка импортирована</string>
+    <string name="import_note_incorrect">Не верный формат</string>
+    <string name="universe_changed">Выбран профиль: </string>
+</resources>

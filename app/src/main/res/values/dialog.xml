@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="CustomDialogTheme" parent="Theme.MaterialComponents.Light.Dialog">
+        <!-- Фон диалога -->
+        <item name="android:windowBackground">@drawable/rounded_text_main</item>
+        <!-- Цвет заголовка -->
+        <item name="android:textColorPrimary">@color/white</item>
+        <!-- Цвет текста сообщения -->
+        <item name="android:textColorSecondary">@color/white</item>
+        <!-- Цвет кнопок -->
+        <item name="colorPrimary">@color/white</item>
+        <item name="colorAccent">@color/white</item>
+        <item name="android:textColorAlertDialogListItem">@color/white</item>
+        <!-- Убираем тень (опционально) -->
+        <item name="android:windowIsFloating">true</item>
+    </style>
+</resources>
