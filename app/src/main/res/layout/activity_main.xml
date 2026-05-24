@@ -39,9 +39,15 @@
         android:gravity="center"
         app:layout_constraintTop_toBottomOf="@id/universe"
         >
-        <View
+        <ImageButton
+            android:id="@+id/button_change_theme"
             android:layout_width="36dp"
             android:layout_height="36dp"
+            android:scaleType="centerCrop"
+            android:onClick="onClickChangeTheme"
+            android:src="@drawable/icon_writter"
+            android:background="@drawable/rounded_buttons"
+            app:tint="?attr/colorBorder"
             android:layout_marginRight="@dimen/paddingB"
             />
         <TextView
@@ -66,7 +72,7 @@
             android:onClick="onClickToggleRole"
             android:src="@drawable/icon_writter"
             android:background="@drawable/rounded_buttons"
-            app:tint="@color/CharaBorder"
+            app:tint="?attr/colorBorder"
             android:layout_marginLeft="@dimen/paddingB"
             />
     </LinearLayout>
@@ -97,7 +103,7 @@
                 android:onClick="onClickImport"
                 android:src="@drawable/icon_import"
                 android:background="@drawable/rounded_buttons"
-                app:tint="@color/CharaBorder"
+                app:tint="?attr/colorBorder"
                 android:layout_marginRight="@dimen/paddingB"
                 android:layout_gravity="right"
                 />
@@ -111,7 +117,7 @@
         android:src="@drawable/icon_add"
         android:padding="@dimen/paddingL"
         android:background="@drawable/rounded_buttons"
-        app:tint="@color/CharaBorder"
+        app:tint="?attr/colorBorder"
         android:layout_margin="@dimen/paddingL"
         android:onClick="onClickCreateNewNote"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -125,7 +131,7 @@
         android:src="@drawable/icon_profile"
         android:padding="@dimen/paddingL"
         android:background="@drawable/rounded_buttons"
-        app:tint="@color/CharaBorder"
+        app:tint="?attr/colorBorder"
         android:layout_margin="@dimen/paddingL"
         android:onClick="onClickChangeUniverse"
         app:layout_constraintBottom_toBottomOf="parent"

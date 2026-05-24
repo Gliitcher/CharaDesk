@@ -46,6 +46,7 @@ public class Note extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        MainMenu.applyTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
         avatarView = findViewById(R.id.note_avatar);

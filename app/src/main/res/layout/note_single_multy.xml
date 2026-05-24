@@ -47,7 +47,7 @@
                     android:onClick="onClickMenu"
                     android:src="@drawable/icon_menu"
                     android:background="@drawable/rounded_buttons"
-                    app:tint="@color/CharaIconBorder"
+                    app:tint="?attr/colorBorder"
                     android:layout_margin="@dimen/paddingL" />
             </LinearLayout>
         </LinearLayout>

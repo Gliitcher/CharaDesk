@@ -17,22 +17,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
@@ -57,21 +52,41 @@ public class MainMenu extends AppCompatActivity {
     public static final String PREFS_NAME = "settings";
     public static final String KEY_ROLE = "user_role";
     public static final String KEY_NOTES = "saved_notes";
+    public static final String KEY_THEME = "theme";
     public static final String KEY_PASSWORD = null;
     public static final String ROLE_WRITER = "writer";
     public static final String ROLE_READER = "reader";
     private String currentRole;
+    private static String currentTheme;
     private static String password;
 
+    public static void applyTheme(Context context){
+        if (currentTheme.equals("LAVENDER")) {
+            context.setTheme(R.style.Theme_Lavander);
+        } else if (currentTheme.equals("HIBISCUS")) {
+            context.setTheme(R.style.Theme_Hibiscus);
+        } else if (currentTheme.equals("MOLUCELLA")) {
+            context.setTheme(R.style.Theme_Molucella);
+        } else if (currentTheme.equals("DANDELION")) {
+            context.setTheme(R.style.Theme_Dandelion);
+        } else if (currentTheme.equals("FORGETMENOT")) {
+            context.setTheme(R.style.Theme_ForgetMeNot);
+        } else {
+            context.setTheme(R.style.Theme_Lavander);
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         currentRole = prefs.getString(KEY_ROLE, ROLE_WRITER);
         currentProfile = prefs.getString(KEY_NOTES, currentProfile);
         password = prefs.getString(KEY_PASSWORD, password);
+        currentTheme = prefs.getString(KEY_THEME, "LAVENDER");
+
+        applyTheme(this);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
         updateRoleIcon();
 
         TextView universes = findViewById(R.id.universe);
@@ -230,7 +245,6 @@ public class MainMenu extends AppCompatActivity {
     public void onClickChangeUniverse(View view) {
         Intent intent = new Intent(this, Universe.class);
         intent.putExtra("current_profile", currentProfile);
-        intent.putExtra("role", currentRole);
         startActivityForResult(intent, REQUEST_ACCOUNTS);
     }
     // Перемещение заметки вверх
@@ -307,6 +321,34 @@ public class MainMenu extends AppCompatActivity {
         startActivityForResult(intent, REQUEST_IMPORT);
     }
 
+    public void onClickChangeTheme(View view){
+        String[] theme = {getString(R.string.lavender), getString(R.string.hibiscus),
+                getString(R.string.molucella),getString(R.string.dandelion),
+                getString(R.string.forget_me_not)};
+        new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle(getString(R.string.change_theme))
+                .setItems(theme, (dialog, which) ->{
+                    String newTheme = "";
+                    if (which == 0)
+                            newTheme = "LAVENDER";
+                    else if (which == 1)
+                        newTheme = "HIBISCUS";
+                    else if (which == 2)
+                        newTheme = "MOLUCELLA";
+                    else if (which == 3)
+                        newTheme = "DANDELION";
+                    else if (which == 4)
+                        newTheme = "FORGETMENOT";
+                    currentTheme = newTheme;
+                    getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                            .edit()
+                            .putString(KEY_THEME, currentTheme)
+                            .apply();
+                    recreate();
+                })
+                .show();
+    }
+
     // Нахождение корневой CardView заметки
     private View getNoteCardView(View button) {
         View parent = (View) button.getParent();
@@ -374,14 +416,17 @@ public class MainMenu extends AppCompatActivity {
         ImageButton btnCreate = findViewById(R.id.button_add);
         ImageButton btnImport = findViewById(R.id.button_import);
         ImageButton btnAccounts = findViewById(R.id.button_universe);
+        ImageButton btnTheme = findViewById(R.id.button_change_theme);
         if (currentRole.equals(ROLE_READER)) {
             if (btnCreate != null) btnCreate.setVisibility(View.GONE);
             if (btnImport != null) btnImport.setVisibility(View.GONE);
             if (btnAccounts != null) btnAccounts.setVisibility(View.GONE);
+            if (btnTheme != null) btnTheme.setVisibility(View.GONE);
         } else {
             if (btnCreate != null) btnCreate.setVisibility(View.VISIBLE);
             if (btnImport != null) btnImport.setVisibility(View.VISIBLE);
             if (btnAccounts != null) btnAccounts.setVisibility(View.VISIBLE);
+            if (btnTheme != null) btnTheme.setVisibility(View.VISIBLE);
         }
     }
 

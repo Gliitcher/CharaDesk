@@ -23,6 +23,7 @@
     <string name="delete_block">Удалить блок?</string>
     <string name="delete_note">Удалить заметку?</string>
     <string name="delete_universe">Удалить пространство?</string>
+    <string name="change_theme">Смена темы</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
 
@@ -36,4 +37,10 @@
     <string name="import_note">Заметка импортирована</string>
     <string name="import_note_incorrect">Не верный формат</string>
     <string name="universe_changed">Выбран профиль: </string>
+
+    <string name="lavender">Лаванда</string>
+    <string name="hibiscus">Гибискус</string>
+    <string name="molucella">Молюцелла</string>
+    <string name="dandelion">Одуванчик</string>
+    <string name="forget_me_not">Незабудка</string>
 </resources>

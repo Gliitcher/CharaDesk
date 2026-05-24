@@ -13,7 +13,7 @@
         android:onClick="onClickUp"
         android:src="@drawable/icon_up"
         android:background="@drawable/rounded_buttons"
-        app:tint="@color/CharaBorder"
+        app:tint="?attr/colorBorder"
         android:layout_margin="@dimen/paddingL"/>
     <ImageButton
         android:layout_width="36dp"
@@ -22,7 +22,7 @@
         android:onClick="onClickDown"
         android:src="@drawable/icon_down"
         android:background="@drawable/rounded_buttons"
-        app:tint="@color/CharaBorder"
+        app:tint="?attr/colorBorder"
         android:layout_margin="@dimen/paddingL"/>
     <ImageButton
         android:id="@+id/export_button"
@@ -32,7 +32,7 @@
         android:onClick="onClickExport"
         android:src="@drawable/icon_export"
         android:background="@drawable/rounded_buttons"
-        app:tint="@color/CharaBorder"
+        app:tint="?attr/colorBorder"
         android:layout_margin="@dimen/paddingL"/>
     <View
         android:layout_weight="1"
@@ -46,6 +46,6 @@
         android:onClick="onClickDelete"
         android:src="@drawable/icon_delete"
         android:background="@drawable/rounded_buttons"
-        app:tint="@color/CharaBorder"
+        app:tint="?attr/colorBorder"
         android:layout_margin="@dimen/paddingL"/>
 </LinearLayout>

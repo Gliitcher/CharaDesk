@@ -5,14 +5,45 @@
     <color name="black_hint">#686868</color>
     <color name="gray">#717171</color>
     <color name="white">#FFE6FD</color>
-    <color name="white_hint">#FBC1E2</color>
+    <color name="transparent">#00C53143</color>
+
+    <color name="CharaHint">#FBC1E2</color>
     <color name="CharaBackground">#C782E0</color>
     <color name="CharaBorder">#9A52B3</color>
     <color name="CharaBackgroundSub">#FED8FB</color>
     <color name="CharaBorderSub">#F8B2EE</color>
     <color name="CharaIcon">#FED8FB</color>
     <color name="CharaIconBorder">#9A52B3</color>
+
+    <color name="DeskHint">#FBC1C3</color>
     <color name="DeskBackground">#ED4D60</color>
     <color name="DeskBorder">#C53143</color>
-    <color name="transparent">#00C53143</color>
+    <color name="DeskBackgroundSub">#F8A8B0</color>
+    <color name="DeskBorderSub">#E07982</color>
+    <color name="DeskIcon">#F67E8A</color>
+    <color name="DeskIconBorder">#C53143</color>
+
+    <color name="MollHint">#C1FBC3</color>
+    <color name="MollBackground">#3CD040</color>
+    <color name="MollBorder">#30B126</color>
+    <color name="MollBackgroundSub">#A8F8B9</color>
+    <color name="MollBorderSub">#79E08F</color>
+    <color name="MollIcon">#7EF686</color>
+    <color name="MollIconBorder">#31C53B</color>
+
+    <color name="DandHint">#FBEDC1</color>
+    <color name="DandBackground">#D7C845</color>
+    <color name="DandBorder">#AD972A</color>
+    <color name="DandBackgroundSub">#F8EBA8</color>
+    <color name="DandBorderSub">#E0CF79</color>
+    <color name="DandIcon">#F6DE7E</color>
+    <color name="DandIconBorder">#C5A731</color>
+
+    <color name="ForgHint">#C1D8FB</color>
+    <color name="ForgBackground">#4DBAED</color>
+    <color name="ForgBorder">#31ACC5</color>
+    <color name="ForgBackgroundSub">#A8E3F8</color>
+    <color name="ForgBorderSub">#79CFE0</color>
+    <color name="ForgIcon">#7ED0F6</color>
+    <color name="ForgIconBorder">#31C3C5</color>
 </resources>

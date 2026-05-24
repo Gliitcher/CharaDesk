@@ -22,6 +22,7 @@ public class CreateNote extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        MainMenu.applyTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_note);
         titleNote = findViewById(R.id.note_title);

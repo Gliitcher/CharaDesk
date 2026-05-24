@@ -10,7 +10,7 @@
     <EditText
         android:id="@+id/title"
         android:hint="@string/name_hint"
-        android:textColorHint="@color/white_hint"
+        android:textColorHint="?attr/colorHint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="@color/white"
@@ -77,7 +77,7 @@
     android:scaleType="centerCrop"
     android:src="@drawable/icon_add"
     android:background="@drawable/rounded_buttons"
-    app:tint="@color/CharaBorder"
+        app:tint="?attr/colorBorder"
     android:padding="@dimen/paddingL"
         android:layout_margin="@dimen/paddingB"
     android:onClick="onClickAddElement"
@@ -93,7 +93,7 @@
         android:padding="@dimen/paddingL"
         android:layout_margin="@dimen/paddingB"
         android:background="@drawable/rounded_buttons"
-        app:tint="@color/CharaBorder"
+        app:tint="?attr/colorBorder"
         android:onClick="onClickBack"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent">

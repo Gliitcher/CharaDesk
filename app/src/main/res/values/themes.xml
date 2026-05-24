@@ -1,8 +1,56 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.CharaDesk" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+    </style>
+    <style name="Theme.Lavander" parent="Base.Theme.CharaDesk">
+        <item name="colorBackground">@color/CharaBackground</item>
+        <item name="colorBackgroundSub">@color/CharaBackgroundSub</item>
+        <item name="colorBorder">@color/CharaBorder</item>
+        <item name="colorBorderSub">@color/CharaBorderSub</item>
+        <item name="colorIcon">@color/CharaIcon</item>
+        <item name="colorIconBorder">@color/CharaIconBorder</item>
+        <item name="colorHint">@color/CharaHint</item>
+    </style>
+
+    <style name="Theme.Hibiscus" parent="Base.Theme.CharaDesk">
+        <item name="colorBackground">@color/DeskBackground</item>
+        <item name="colorBackgroundSub">@color/DeskBackgroundSub</item>
+        <item name="colorBorder">@color/DeskBorder</item>
+        <item name="colorBorderSub">@color/DeskBorderSub</item>
+        <item name="colorIcon">@color/DeskIcon</item>
+        <item name="colorIconBorder">@color/DeskIconBorder</item>
+        <item name="colorHint">@color/DeskHint</item>
+    </style>
+
+    <style name="Theme.Molucella" parent="Base.Theme.CharaDesk">
+        <item name="colorBackground">@color/MollBackground</item>
+        <item name="colorBackgroundSub">@color/MollBackgroundSub</item>
+        <item name="colorBorder">@color/MollBorder</item>
+        <item name="colorBorderSub">@color/MollBorderSub</item>
+        <item name="colorIcon">@color/MollIcon</item>
+        <item name="colorIconBorder">@color/MollIconBorder</item>
+        <item name="colorHint">@color/MollHint</item>
+    </style>
+
+    <style name="Theme.Dandelion" parent="Base.Theme.CharaDesk">
+        <item name="colorBackground">@color/DandBackground</item>
+        <item name="colorBackgroundSub">@color/DandBackgroundSub</item>
+        <item name="colorBorder">@color/DandBorder</item>
+        <item name="colorBorderSub">@color/DandBorderSub</item>
+        <item name="colorIcon">@color/DandIcon</item>
+        <item name="colorIconBorder">@color/DandIconBorder</item>
+        <item name="colorHint">@color/DandHint</item>
+    </style>
+
+    <style name="Theme.ForgetMeNot" parent="Base.Theme.CharaDesk">
+        <item name="colorBackground">@color/ForgBackground</item>
+        <item name="colorBackgroundSub">@color/ForgBackgroundSub</item>
+        <item name="colorBorder">@color/ForgBorder</item>
+        <item name="colorBorderSub">@color/ForgBorderSub</item>
+        <item name="colorIcon">@color/ForgIcon</item>
+        <item name="colorIconBorder">@color/ForgIconBorder</item>
+        <item name="colorHint">@color/ForgHint</item>
     </style>
 
     <style name="Theme.CharaDesk" parent="Base.Theme.CharaDesk" />

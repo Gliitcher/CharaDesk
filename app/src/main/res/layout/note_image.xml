@@ -51,14 +51,14 @@
                     android:onClick="onClickMenu"
                     android:src="@drawable/icon_menu"
                     android:background="@drawable/rounded_buttons"
-                    app:tint="@color/CharaIconBorder"
+                    app:tint="?attr/colorBorder"
                     android:layout_margin="@dimen/paddingL"
                     android:layout_gravity="center"/>
             </LinearLayout>
             <View
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
-                android:background="@color/CharaBorderSub" />
+                android:background="?attr/colorBorderSub" />
             <ImageView
                 android:id="@+id/block_image"
                 android:layout_width="match_parent"

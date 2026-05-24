@@ -1,0 +1,9 @@
+<resources>
+    <attr name="colorBackground" format="color" />
+    <attr name="colorBackgroundSub" format="color" />
+    <attr name="colorBorder" format="color" />
+    <attr name="colorBorderSub" format="color" />
+    <attr name="colorIcon" format="color" />
+    <attr name="colorIconBorder" format="color" />
+    <attr name="colorHint" format="color" />
+</resources>

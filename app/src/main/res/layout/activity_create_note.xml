@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/rounded_text_main"
         android:hint="Название заметки"
-        android:textColorHint="@color/white_hint"
+        android:textColorHint="?attr/colorHint"
         android:textColor="@color/white"
         android:maxLines="1"
         android:maxLength="30"
@@ -92,7 +92,7 @@
             android:padding="@dimen/paddingL"
             android:layout_margin="@dimen/paddingB"
             android:background="@drawable/rounded_buttons"
-            app:tint="@color/CharaBorder"
+            app:tint="?attr/colorBorder"
             android:onClick="onClickBack"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent">
