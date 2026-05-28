@@ -43,4 +43,10 @@
     <string name="molucella">Молюцелла</string>
     <string name="dandelion">Одуванчик</string>
     <string name="forget_me_not">Незабудка</string>
+
+    <string-array name="templates_array">
+        <item>Пустой</item>
+        <item>Базовый персонаж</item>
+        <item>Чудо-юдо</item>
+    </string-array>
 </resources>

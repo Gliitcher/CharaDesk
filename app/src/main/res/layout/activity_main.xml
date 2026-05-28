@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:textSize="@dimen/SubText"
         android:text="default"
-        android:textColor="@color/CharaBorder"
+        android:textColor="?attr/colorBorder"
         android:paddingBottom="@dimen/paddingL"
         android:layout_marginTop="-20dp"
 
@@ -45,7 +45,7 @@
             android:layout_height="36dp"
             android:scaleType="centerCrop"
             android:onClick="onClickChangeTheme"
-            android:src="@drawable/icon_writter"
+            android:src="@drawable/icon_pallete"
             android:background="@drawable/rounded_buttons"
             app:tint="?attr/colorBorder"
             android:layout_marginRight="@dimen/paddingB"

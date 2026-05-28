@@ -34,6 +34,17 @@
         android:background="@drawable/rounded_buttons"
         app:tint="?attr/colorBorder"
         android:layout_margin="@dimen/paddingL"/>
+    <ImageButton
+        android:id="@+id/pdf_button"
+        android:visibility="gone"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:scaleType="centerCrop"
+        android:onClick="onClickPDF"
+        android:src="@drawable/icon_pdf"
+        android:background="@drawable/rounded_buttons"
+        app:tint="?attr/colorBorder"
+        android:layout_margin="@dimen/paddingL"/>
     <View
         android:layout_weight="1"
         android:layout_width="0dp"

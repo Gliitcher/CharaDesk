@@ -6,10 +6,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -35,6 +37,16 @@ import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Typeface;
+import android.graphics.pdf.PdfDocument;
+import android.graphics.RectF;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainMenu extends AppCompatActivity {
     //Коды запросос
@@ -42,6 +54,8 @@ public class MainMenu extends AppCompatActivity {
     private static final int REQUEST_EXPORT = 100;
     private static final int REQUEST_IMPORT = 101;
     private static final int REQUEST_ACCOUNTS = 300;
+    private static final int REQUEST_SAVE_PDF = 400;
+    private PdfDocument pendingPdfDocument;
     public static final String EXTRA_PROFILE_NAME = "profile_name";
 
     private String currentProfile = "notes";// Поле для текущего имени профиля
@@ -52,6 +66,7 @@ public class MainMenu extends AppCompatActivity {
     public static final String PREFS_NAME = "settings";
     public static final String KEY_ROLE = "user_role";
     public static final String KEY_NOTES = "saved_notes";
+    public static final String KEY_PROFILE = "profile";
     public static final String KEY_THEME = "theme";
     public static final String KEY_PASSWORD = null;
     public static final String ROLE_WRITER = "writer";
@@ -79,7 +94,7 @@ public class MainMenu extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         currentRole = prefs.getString(KEY_ROLE, ROLE_WRITER);
-        currentProfile = prefs.getString(KEY_NOTES, currentProfile);
+        currentProfile = prefs.getString(KEY_PROFILE, currentProfile);
         password = prefs.getString(KEY_PASSWORD, password);
         currentTheme = prefs.getString(KEY_THEME, "LAVENDER");
 
@@ -187,8 +202,20 @@ public class MainMenu extends AppCompatActivity {
         if (requestCode == REQUEST_CREATE_NOTE && resultCode == RESULT_OK) {
             String title = data.getStringExtra("note_title");
             String avatarPath = data.getStringExtra("avatar_path");
+            String blocksJson = data.getStringExtra("blocks_json");
+
             NoteData newNote = new NoteData(title);
             if (avatarPath != null) newNote.setAvatarPath(avatarPath);
+
+            if (blocksJson != null && !blocksJson.isEmpty()) {
+                Gson gson = new Gson();
+                Type type = new TypeToken<List<NoteData.BlockData>>(){}.getType();
+                List<NoteData.BlockData> blocks = gson.fromJson(blocksJson, type);
+                if (blocks != null) {
+                    newNote.getBlocks().addAll(blocks);
+                }
+            }
+
             notesList.add(newNote);
             saveAndRefresh();
         }
@@ -234,11 +261,25 @@ public class MainMenu extends AppCompatActivity {
                 TextView universes = findViewById(R.id.universe);
                 universes.setText(currentProfile);
                 getSharedPreferences("settings", MODE_PRIVATE).edit()
-                        .putString("current_profile", currentProfile).apply();
+                        .putString(KEY_PROFILE, currentProfile).apply();
                 loadNotesFromFile(currentProfile);
                 refreshNotesList();
                 Toast.makeText(this, getString(R.string.universe_changed) + currentProfile, Toast.LENGTH_SHORT).show();
             }
+        }
+        else if (requestCode == REQUEST_SAVE_PDF && pendingPdfDocument != null) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                    pendingPdfDocument.writeTo(out);
+                    Toast.makeText(this, "PDF сохранён", Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    Toast.makeText(this, "Ошибка сохранения PDF", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+            }
+            pendingPdfDocument.close();
+            pendingPdfDocument = null;
         }
     }
     //Метод для смены профиля
@@ -286,18 +327,21 @@ public class MainMenu extends AppCompatActivity {
         View noteCard = getNoteCardView(view);
         LinearLayout buttonPanel = noteCard.findViewById(R.id.button_panel);
         if (buttonPanel == null) return;
+        ImageButton buttonPDF = buttonPanel.findViewById(R.id.pdf_button);
         if (currentOpenPanelNote != null && currentOpenPanelNote != noteCard) {
             LinearLayout oldPanel = currentOpenPanelNote.findViewById(R.id.button_panel);
             if (oldPanel != null) oldPanel.setVisibility(View.GONE);
         }
         if (buttonPanel.getVisibility() == View.GONE && !currentRole.equals(ROLE_READER)) {
             buttonPanel.setVisibility(View.VISIBLE);
+            buttonPDF.setVisibility(View.VISIBLE);
             currentOpenPanelNote = noteCard;
         } else {
             buttonPanel.setVisibility(View.GONE);
             currentOpenPanelNote = null;
         }
     }
+
     //Экспорт заметки
     public void onClickExport(View view) {
         View noteCard = getNoteCardView(view);
@@ -312,6 +356,148 @@ public class MainMenu extends AppCompatActivity {
         intent.putExtra(Intent.EXTRA_TITLE, fileName);
         pendingExportJson = json;
         startActivityForResult(intent, REQUEST_EXPORT);
+    }
+    public void onClickPDF(View view) {
+        // Находим заметку, которую нужно экспортировать
+        View noteCard = getNoteCardView(view);
+        int position = notesContainer.indexOfChild(noteCard);
+        if (position == -1) return;
+        NoteData note = notesList.get(position);
+
+        // Создаём PDF-документ
+        PdfDocument pdfDocument = new PdfDocument();
+
+        // Параметры страницы (формат A4, альбомная или портретная)
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create(); // A4 портрет
+        PdfDocument.Page page = pdfDocument.startPage(pageInfo);
+        Canvas canvas = page.getCanvas();
+
+        // Координаты рисования
+        float x = 50;
+        float y = 50;
+        float pageWidth = pageInfo.getPageWidth();
+        float usableWidth = pageWidth - 2 * x;
+        float lineHeight = 20;
+        Paint paint = new Paint();
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(14);
+
+        // Рисуем аватар
+        Bitmap avatarBitmap = null;
+        if (note.getAvatarPath() != null) {
+            File avatarFile = new File(note.getAvatarPath());
+            if (avatarFile.exists()) {
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inSampleSize = 2;
+                avatarBitmap = BitmapFactory.decodeFile(note.getAvatarPath(), options);
+            }
+        }
+        if (avatarBitmap != null) {
+            float imageWidth = 100;
+            float imageHeight = 100 * (float) avatarBitmap.getHeight() / avatarBitmap.getWidth();
+            canvas.drawBitmap(avatarBitmap, null, new RectF(x, y, x + imageWidth, y + imageHeight), null);
+            y += imageHeight + 20;
+        }
+
+        // Рисуем заголовок заметки
+        paint.setStyle(Paint.Style.FILL);
+        paint.setTextSize(24);
+        paint.setTypeface(Typeface.DEFAULT_BOLD);
+        canvas.drawText(note.getTitle(), x, y, paint);
+        y += lineHeight * 2;
+        paint.setTextSize(14);
+        paint.setTypeface(Typeface.DEFAULT);
+
+        // Рисуем блоки
+        for (NoteData.BlockData block : note.getBlocks()) {
+            String blockTitle = block.getTitle();
+            String blockText = block.getText();
+            if (blockTitle != null && !blockTitle.isEmpty()) {
+                paint.setTypeface(Typeface.DEFAULT_BOLD);
+                paint.setTextSize(18);
+                canvas.drawText(blockTitle, x, y, paint);
+                y += lineHeight;
+                paint.setTypeface(Typeface.DEFAULT);
+                paint.setTextSize(14);
+            }
+            // Блок-изображение
+            if ("image".equals(block.getType()) && block.getImagePath() != null) {
+                File imgFile = new File(block.getImagePath());
+                if (imgFile.exists()) {
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inSampleSize = 2;
+                    Bitmap img = BitmapFactory.decodeFile(block.getImagePath(), options);
+                    if (img != null) {
+                        float maxImageWidth = usableWidth;
+                        float maxImageHeight = 200;
+                        float imgWidth = maxImageWidth;
+                        float imgHeight = imgWidth * (float) img.getHeight() / img.getWidth();
+                        if (imgHeight > maxImageHeight) {
+                            imgHeight = maxImageHeight;
+                            imgWidth = imgHeight * (float) img.getWidth() / img.getHeight();
+                        }
+                        if (y + imgHeight > pageInfo.getPageHeight() - 50) {
+                            pdfDocument.finishPage(page);
+                            page = pdfDocument.startPage(pageInfo);
+                            canvas = page.getCanvas();
+                            y = 50;
+                        }
+                        canvas.drawBitmap(img, null, new RectF(x, y, x + imgWidth, y + imgHeight), null);
+                        y += imgHeight + 20;
+                        continue; // переходим к следующему блоку, текст не выводим
+                    }
+                }
+            }
+            if (blockText != null && !blockText.isEmpty()) {
+                // Разбиваем текст на строки с переносом
+                List<String> lines = splitText(blockText, paint, usableWidth);
+                for (String line : lines) {
+                    canvas.drawText(line, x, y, paint);
+                    y += lineHeight;
+                    if (y > pageInfo.getPageHeight() - 50) {
+                        // Нужна новая страница
+                        pdfDocument.finishPage(page);
+                        page = pdfDocument.startPage(pageInfo);
+                        canvas = page.getCanvas();
+                        y = 50; // сброс координаты на новой странице
+                    }
+                }
+            }
+            y += lineHeight; // дополнительный отступ между блоками
+            if (y > pageInfo.getPageHeight() - 50) {
+                pdfDocument.finishPage(page);
+                page = pdfDocument.startPage(pageInfo);
+                canvas = page.getCanvas();
+                y = 50;
+            }
+        }
+
+        pdfDocument.finishPage(page);
+
+        // Сохранение через ACTION_CREATE_DOCUMENT
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/pdf");
+        intent.putExtra(Intent.EXTRA_TITLE, "note_" + note.getTitle() + ".pdf");
+        startActivityForResult(Intent.createChooser(intent, "Сохранить PDF"), REQUEST_SAVE_PDF);
+        pendingPdfDocument = pdfDocument;
+    }
+    private List<String> splitText(String text, Paint paint, float maxWidth) {
+        List<String> lines = new ArrayList<>();
+        String[] words = text.split(" ");
+        StringBuilder currentLine = new StringBuilder();
+        for (String word : words) {
+            String testLine = currentLine.length() == 0 ? word : currentLine + " " + word;
+            float width = paint.measureText(testLine);
+            if (width <= maxWidth) {
+                currentLine.append(currentLine.length() == 0 ? word : " " + word);
+            } else {
+                lines.add(currentLine.toString());
+                currentLine = new StringBuilder(word);
+            }
+        }
+        if (currentLine.length() > 0) lines.add(currentLine.toString());
+        return lines;
     }
     // Импорт заметок
     public void onClickImport(View view) {
@@ -401,7 +587,7 @@ public class MainMenu extends AppCompatActivity {
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                 .edit()
                 .putString(KEY_ROLE, currentRole)
-                .putString(KEY_NOTES, currentProfile)
+                .putString(KEY_PROFILE, currentProfile)
                 .putString(KEY_PASSWORD, password)
                 .apply();
         Toast.makeText(this, currentRole.equals(ROLE_READER) ? "Режим чтения" : "Режим редактирования", Toast.LENGTH_SHORT).show();
@@ -428,6 +614,13 @@ public class MainMenu extends AppCompatActivity {
             if (btnAccounts != null) btnAccounts.setVisibility(View.VISIBLE);
             if (btnTheme != null) btnTheme.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    public void onStop(){
+        super.onStop();
+        getSharedPreferences("settings", MODE_PRIVATE).edit()
+                .putString(KEY_PROFILE, currentProfile).apply();
     }
 
     @Override

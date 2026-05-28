@@ -8,7 +8,11 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -74,11 +78,42 @@ public class CreateNote extends AppCompatActivity {
         String title = titleNote.getText().toString().trim();
         if (title.isEmpty()) title = getString(R.string.untitle);
 
+        Spinner templateSpinner = findViewById(R.id.template_spinner);
+        int selectedTemplate = templateSpinner.getSelectedItemPosition();
+
+        NoteData newNote = new NoteData(title);
+        if (selectedAvatarPath != null) {
+            newNote.setAvatarPath(selectedAvatarPath);
+        }
+
+        switch (selectedTemplate) {
+            case 1: // Базовый
+                newNote.addBlock(new NoteData.BlockData("multy", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Характер", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Биография", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Способности", ""));
+                break;
+            case 2: // Чудо-юдо
+                newNote.addBlock(new NoteData.BlockData("multy", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Способности", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Характер", ""));
+                newNote.addBlock(new NoteData.BlockData("image", "Высшая форма", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Эволюция", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Особенности", ""));
+                break;
+            default: // Пустой – блоков не добавляем
+                break;
+        }
+
+        Gson gson = new Gson();
+        String blocksJson = gson.toJson(newNote.getBlocks());
+
         Intent resultIntent = new Intent();
         resultIntent.putExtra("note_title", title);
         if (selectedAvatarPath != null) {
             resultIntent.putExtra("avatar_path", selectedAvatarPath);
         }
+        resultIntent.putExtra("blocks_json", blocksJson);
         setResult(RESULT_OK, resultIntent);
         finish();
     }
