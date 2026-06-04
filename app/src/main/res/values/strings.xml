@@ -47,6 +47,8 @@
     <string-array name="templates_array">
         <item>Пустой</item>
         <item>Базовый персонаж</item>
+        <item>Локация</item>
+        <item>Рецепт</item>
         <item>Чудо-юдо</item>
     </string-array>
 </resources>

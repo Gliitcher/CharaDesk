@@ -93,7 +93,21 @@ public class CreateNote extends AppCompatActivity {
                 newNote.addBlock(new NoteData.BlockData("multiline", "Биография", ""));
                 newNote.addBlock(new NoteData.BlockData("multiline", "Способности", ""));
                 break;
-            case 2: // Чудо-юдо
+            case 2: // Локация
+                newNote.addBlock(new NoteData.BlockData("multy", ""));
+                newNote.addBlock(new NoteData.BlockData("image", "Вид", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Описание", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "История", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Её особенность", ""));
+                break;
+            case 3: // Рецепт
+                newNote.addBlock(new NoteData.BlockData("multy", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Ингридиенты", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Приготовление", ""));
+                newNote.addBlock(new NoteData.BlockData("multiline", "Особенности", ""));
+                newNote.addBlock(new NoteData.BlockData("image", "Продукт", ""));
+                break;
+            case 4: // Чудо-юдо
                 newNote.addBlock(new NoteData.BlockData("multy", ""));
                 newNote.addBlock(new NoteData.BlockData("multiline", "Способности", ""));
                 newNote.addBlock(new NoteData.BlockData("multiline", "Характер", ""));
