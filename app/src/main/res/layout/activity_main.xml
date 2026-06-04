@@ -77,65 +77,64 @@
             />
     </LinearLayout>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_margin="@dimen/paddingL"
+        android:padding="@dimen/paddingL"
         app:layout_constraintTop_toBottomOf="@id/subtitle"
-        app:layout_constraintBottom_toTopOf="@id/button_add">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <LinearLayout
-                android:id="@+id/linear"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/paddingL"/>
-
-            <ImageButton
-                android:id="@+id/button_import"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:scaleType="centerCrop"
-                android:onClick="onClickImport"
-                android:src="@drawable/icon_import"
-                android:background="@drawable/rounded_buttons"
-                app:tint="?attr/colorBorder"
-                android:layout_marginRight="@dimen/paddingB"
-                android:layout_gravity="right"
-                />
-        </LinearLayout>
-    </ScrollView>
-    <ImageButton
-        android:id="@+id/button_add"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/icon_add"
-        android:padding="@dimen/paddingL"
-        android:background="@drawable/rounded_buttons"
-        app:tint="?attr/colorBorder"
-        android:layout_margin="@dimen/paddingL"
-        android:onClick="onClickCreateNewNote"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-    </ImageButton>
-    <ImageButton
-        android:id="@+id/button_universe"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/icon_profile"
-        android:padding="@dimen/paddingL"
-        android:background="@drawable/rounded_buttons"
-        app:tint="?attr/colorBorder"
-        android:layout_margin="@dimen/paddingL"
-        android:onClick="onClickChangeUniverse"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintBottom_toTopOf="@id/linear" />
+    <LinearLayout
+        android:id="@+id/linear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent">
+        <ImageButton
+            android:id="@+id/button_universe"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/icon_profile"
+            android:padding="@dimen/paddingL"
+            android:background="@drawable/rounded_buttons"
+            app:tint="?attr/colorBorder"
+            android:layout_margin="@dimen/paddingL"
+            android:onClick="onClickChangeUniverse"
+            />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+        <ImageButton
+            android:id="@+id/button_import"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:scaleType="centerCrop"
+            android:onClick="onClickImport"
+            android:src="@drawable/icon_import"
+            android:background="@drawable/rounded_buttons"
+            app:tint="?attr/colorBorder"
+            android:layout_margin="@dimen/paddingL"
+            />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+        <ImageButton
+            android:id="@+id/button_add"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/icon_add"
+            android:padding="@dimen/paddingL"
+            android:background="@drawable/rounded_buttons"
+            app:tint="?attr/colorBorder"
+            android:layout_margin="@dimen/paddingL"
+            android:onClick="onClickCreateNewNote">
+        </ImageButton>
+    </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,19 +6,27 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -37,19 +45,8 @@ import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Typeface;
-import android.graphics.pdf.PdfDocument;
-import android.graphics.RectF;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainMenu extends AppCompatActivity {
-    //Коды запросос
     private static final int REQUEST_CREATE_NOTE = 1;
     private static final int REQUEST_EXPORT = 100;
     private static final int REQUEST_IMPORT = 101;
@@ -58,9 +55,10 @@ public class MainMenu extends AppCompatActivity {
     private PdfDocument pendingPdfDocument;
     public static final String EXTRA_PROFILE_NAME = "profile_name";
 
-    private String currentProfile = "notes";// Поле для текущего имени профиля
-    public static List<NoteData> notesList = new ArrayList<>();//Список заметок
-    private LinearLayout notesContainer;//Контейнер для заметок
+    private String currentProfile = "notes";
+    public static List<NoteData> notesList = new ArrayList<>();
+    private RecyclerView recyclerView;
+    private NoteAdapter adapter;
     private View currentOpenPanelNote = null;
     private String pendingExportJson = null;
     public static final String PREFS_NAME = "settings";
@@ -90,6 +88,7 @@ public class MainMenu extends AppCompatActivity {
             context.setTheme(R.style.Theme_Lavander);
         }
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -107,58 +106,86 @@ public class MainMenu extends AppCompatActivity {
         TextView universes = findViewById(R.id.universe);
         universes.setText(currentProfile);
 
-        notesContainer = findViewById(R.id.linear);
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new NoteAdapter();
+        recyclerView.setAdapter(adapter);
+
         loadNotesFromFile(currentProfile);
         refreshNotesList();
         updateUIBasedOnRole();
     }
 
     private void refreshNotesList() {
-        notesContainer.removeAllViews();
-        currentOpenPanelNote = null;
-        for (int i = 0; i < notesList.size(); i++) {
-            addNoteViewToContainer(notesList.get(i), i);
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
         }
+        currentOpenPanelNote = null;
     }
-    // Метод добавления заметки в контейнер
-    private void addNoteViewToContainer(NoteData note, final int position) {
-        View noteView = LayoutInflater.from(this).inflate(R.layout.note_item, notesContainer, false);
-        TextView noteText = noteView.findViewById(R.id.note_text);
-        ImageView avatar = noteView.findViewById(R.id.avatar);
-        noteText.setText(note.getTitle());
-        if (note.getAvatarPath() != null) {
-            File avatarFile = new File(note.getAvatarPath());
-            if (avatarFile.exists()) {
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inSampleSize = 2;
-                Bitmap bitmap = BitmapFactory.decodeFile(note.getAvatarPath(), options);
-                avatar.setImageBitmap(bitmap);
+
+    private class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.note_item, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            NoteData note = notesList.get(position);
+            holder.noteText.setText(note.getTitle());
+            if (note.getAvatarPath() != null) {
+                File avatarFile = new File(note.getAvatarPath());
+                if (avatarFile.exists()) {
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inSampleSize = 2;
+                    Bitmap bitmap = BitmapFactory.decodeFile(note.getAvatarPath(), options);
+                    holder.avatar.setImageBitmap(bitmap);
+                } else {
+                    holder.avatar.setImageResource(R.drawable.ic_image_placeholder);
+                }
+            } else {
+                holder.avatar.setImageResource(R.drawable.ic_image_placeholder);
+            }
+            if (currentRole.equals(ROLE_READER)) {
+                holder.menuButton.setVisibility(View.GONE);
+            } else {
+                holder.menuButton.setVisibility(View.VISIBLE);
+            }
+            holder.itemView.setOnClickListener(v -> {
+                Intent intent = new Intent(MainMenu.this, Note.class);
+                intent.putExtra("note_index", position);
+                intent.putExtra("profile_name", currentProfile);
+                intent.putExtra("role", currentRole);
+                startActivity(intent);
+            });
+            holder.menuButton.setOnClickListener(v -> onClickMenu(holder.menuButton));
+        }
+
+        @Override
+        public int getItemCount() {
+            return notesList.size();
+        }
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            TextView noteText;
+            ImageView avatar;
+            ImageButton menuButton;
+            ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                noteText = itemView.findViewById(R.id.note_text);
+                avatar = itemView.findViewById(R.id.avatar);
+                menuButton = itemView.findViewById(R.id.note_menu);
             }
         }
-
-        noteView.setOnClickListener(v -> {
-            Intent intent = new Intent(MainMenu.this, Note.class);
-            intent.putExtra("note_index", position);
-            intent.putExtra("profile_name", currentProfile);
-            intent.putExtra("role", currentRole);
-            startActivity(intent);
-        });
-        notesContainer.addView(noteView);
-
-        ImageButton menuButton = noteView.findViewById(R.id.note_menu);
-        if (currentRole.equals(ROLE_READER)) {
-            if (menuButton != null) menuButton.setVisibility(View.GONE);
-        } else {
-            if (menuButton != null) menuButton.setVisibility(View.VISIBLE);
-        }
     }
 
-    //Метод создания заметки
     public void onClickCreateNewNote(View view) {
         Intent intent = new Intent(this, CreateNote.class);
         startActivityForResult(intent, REQUEST_CREATE_NOTE);
     }
-    //Сохранение заметок в файл
+
     public static void saveNotesToFile(Context context, String profileName) {
         String fileName = "notes_" + profileName + ".json";
         try (FileWriter writer = new FileWriter(new File(context.getFilesDir(), fileName))) {
@@ -173,7 +200,6 @@ public class MainMenu extends AppCompatActivity {
         saveNotesToFile(this, currentProfile);
     }
 
-    // Загружает список заметок из файла
     private void loadNotesFromFile(String profileName) {
         String fileName = "notes_" + profileName + ".json";
         File file = new File(getFilesDir(), fileName);
@@ -191,11 +217,12 @@ public class MainMenu extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
     private void saveAndRefresh() {
         saveCurrentProfile();
         refreshNotesList();
     }
-    // Обработчик результатов
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -282,47 +309,64 @@ public class MainMenu extends AppCompatActivity {
             pendingPdfDocument = null;
         }
     }
-    //Метод для смены профиля
+
     public void onClickChangeUniverse(View view) {
         Intent intent = new Intent(this, Universe.class);
         intent.putExtra("current_profile", currentProfile);
         startActivityForResult(intent, REQUEST_ACCOUNTS);
     }
-    // Перемещение заметки вверх
+
     public void onClickUp(View view) {
         View noteCard = getNoteCardView(view);
-        int position = notesContainer.indexOfChild(noteCard);
+        int position = recyclerView.getChildAdapterPosition(noteCard);
         if (position > 0) {
-            // Меняем местами в списке
+            if (currentOpenPanelNote != null) {
+                LinearLayout panel = currentOpenPanelNote.findViewById(R.id.button_panel);
+                if (panel != null) panel.setVisibility(View.GONE);
+                currentOpenPanelNote = null;
+            }
             NoteData note = notesList.remove(position);
             notesList.add(position - 1, note);
-            saveAndRefresh();
+            adapter.notifyDataSetChanged();
+            saveCurrentProfile();
         }
     }
-    // Перемещение заметки вниз
+
     public void onClickDown(View view) {
         View noteCard = getNoteCardView(view);
-        int position = notesContainer.indexOfChild(noteCard);
+        int position = recyclerView.getChildAdapterPosition(noteCard);
         if (position < notesList.size() - 1) {
+            if (currentOpenPanelNote != null) {
+                LinearLayout panel = currentOpenPanelNote.findViewById(R.id.button_panel);
+                if (panel != null) panel.setVisibility(View.GONE);
+                currentOpenPanelNote = null;
+            }
             NoteData note = notesList.remove(position);
             notesList.add(position + 1, note);
-            saveAndRefresh();
+            adapter.notifyDataSetChanged();
+            saveCurrentProfile();
         }
     }
-    // Удаление заметки с подтверждением
+
     public void onClickDelete(View view) {
         View noteCard = getNoteCardView(view);
-        int position = notesContainer.indexOfChild(noteCard);
+        int position = recyclerView.getChildAdapterPosition(noteCard);
         new AlertDialog.Builder(this, R.style.CustomDialogTheme)
                 .setTitle(getString(R.string.delete_note))
                 .setPositiveButton(getString(R.string.yes), (dialog, which) -> {
+                    if (currentOpenPanelNote != null) {
+                        LinearLayout panel = currentOpenPanelNote.findViewById(R.id.button_panel);
+                        if (panel != null) panel.setVisibility(View.GONE);
+                        currentOpenPanelNote = null;
+                    }
                     notesList.remove(position);
-                    saveAndRefresh();
+                    adapter.notifyDataSetChanged();
+                    saveCurrentProfile();
                 })
                 .setNegativeButton(getString(R.string.no), null)
                 .show();
     }
-    // Управление меню
+
     public void onClickMenu(View view) {
         View noteCard = getNoteCardView(view);
         LinearLayout buttonPanel = noteCard.findViewById(R.id.button_panel);
@@ -342,10 +386,9 @@ public class MainMenu extends AppCompatActivity {
         }
     }
 
-    //Экспорт заметки
     public void onClickExport(View view) {
         View noteCard = getNoteCardView(view);
-        int position = notesContainer.indexOfChild(noteCard);
+        int position = recyclerView.getChildAdapterPosition(noteCard);
         NoteData note = notesList.get(position);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(note);
@@ -357,22 +400,18 @@ public class MainMenu extends AppCompatActivity {
         pendingExportJson = json;
         startActivityForResult(intent, REQUEST_EXPORT);
     }
+
     public void onClickPDF(View view) {
-        // Находим заметку, которую нужно экспортировать
         View noteCard = getNoteCardView(view);
-        int position = notesContainer.indexOfChild(noteCard);
+        int position = recyclerView.getChildAdapterPosition(noteCard);
         if (position == -1) return;
         NoteData note = notesList.get(position);
 
-        // Создаём PDF-документ
         PdfDocument pdfDocument = new PdfDocument();
-
-        // Параметры страницы (формат A4, альбомная или портретная)
-        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create(); // A4 портрет
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create();
         PdfDocument.Page page = pdfDocument.startPage(pageInfo);
         Canvas canvas = page.getCanvas();
 
-        // Координаты рисования
         float x = 50;
         float y = 50;
         float pageWidth = pageInfo.getPageWidth();
@@ -382,7 +421,6 @@ public class MainMenu extends AppCompatActivity {
         paint.setColor(Color.BLACK);
         paint.setTextSize(14);
 
-        // Рисуем аватар
         Bitmap avatarBitmap = null;
         if (note.getAvatarPath() != null) {
             File avatarFile = new File(note.getAvatarPath());
@@ -399,7 +437,6 @@ public class MainMenu extends AppCompatActivity {
             y += imageHeight + 20;
         }
 
-        // Рисуем заголовок заметки
         paint.setStyle(Paint.Style.FILL);
         paint.setTextSize(24);
         paint.setTypeface(Typeface.DEFAULT_BOLD);
@@ -408,7 +445,6 @@ public class MainMenu extends AppCompatActivity {
         paint.setTextSize(14);
         paint.setTypeface(Typeface.DEFAULT);
 
-        // Рисуем блоки
         for (NoteData.BlockData block : note.getBlocks()) {
             String blockTitle = block.getTitle();
             String blockText = block.getText();
@@ -420,7 +456,6 @@ public class MainMenu extends AppCompatActivity {
                 paint.setTypeface(Typeface.DEFAULT);
                 paint.setTextSize(14);
             }
-            // Блок-изображение
             if ("image".equals(block.getType()) && block.getImagePath() != null) {
                 File imgFile = new File(block.getImagePath());
                 if (imgFile.exists()) {
@@ -444,26 +479,24 @@ public class MainMenu extends AppCompatActivity {
                         }
                         canvas.drawBitmap(img, null, new RectF(x, y, x + imgWidth, y + imgHeight), null);
                         y += imgHeight + 20;
-                        continue; // переходим к следующему блоку, текст не выводим
+                        continue;
                     }
                 }
             }
             if (blockText != null && !blockText.isEmpty()) {
-                // Разбиваем текст на строки с переносом
                 List<String> lines = splitText(blockText, paint, usableWidth);
                 for (String line : lines) {
                     canvas.drawText(line, x, y, paint);
                     y += lineHeight;
                     if (y > pageInfo.getPageHeight() - 50) {
-                        // Нужна новая страница
                         pdfDocument.finishPage(page);
                         page = pdfDocument.startPage(pageInfo);
                         canvas = page.getCanvas();
-                        y = 50; // сброс координаты на новой странице
+                        y = 50;
                     }
                 }
             }
-            y += lineHeight; // дополнительный отступ между блоками
+            y += lineHeight;
             if (y > pageInfo.getPageHeight() - 50) {
                 pdfDocument.finishPage(page);
                 page = pdfDocument.startPage(pageInfo);
@@ -474,7 +507,6 @@ public class MainMenu extends AppCompatActivity {
 
         pdfDocument.finishPage(page);
 
-        // Сохранение через ACTION_CREATE_DOCUMENT
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/pdf");
@@ -482,6 +514,7 @@ public class MainMenu extends AppCompatActivity {
         startActivityForResult(Intent.createChooser(intent, "Сохранить PDF"), REQUEST_SAVE_PDF);
         pendingPdfDocument = pdfDocument;
     }
+
     private List<String> splitText(String text, Paint paint, float maxWidth) {
         List<String> lines = new ArrayList<>();
         String[] words = text.split(" ");
@@ -499,7 +532,7 @@ public class MainMenu extends AppCompatActivity {
         if (currentLine.length() > 0) lines.add(currentLine.toString());
         return lines;
     }
-    // Импорт заметок
+
     public void onClickImport(View view) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -516,7 +549,7 @@ public class MainMenu extends AppCompatActivity {
                 .setItems(theme, (dialog, which) ->{
                     String newTheme = "";
                     if (which == 0)
-                            newTheme = "LAVENDER";
+                        newTheme = "LAVENDER";
                     else if (which == 1)
                         newTheme = "HIBISCUS";
                     else if (which == 2)
@@ -535,13 +568,12 @@ public class MainMenu extends AppCompatActivity {
                 .show();
     }
 
-    // Нахождение корневой CardView заметки
     private View getNoteCardView(View button) {
         View parent = (View) button.getParent();
-        while (!(parent.getParent() instanceof androidx.cardview.widget.CardView)) {
+        while (!(parent instanceof androidx.cardview.widget.CardView)) {
             parent = (View) parent.getParent();
         }
-        return (View) parent.getParent();
+        return parent;
     }
 
     private void updateRoleIcon() {
@@ -551,7 +583,7 @@ public class MainMenu extends AppCompatActivity {
                 toggleButton.setImageResource(R.drawable.icon_writter);
             } else {
                 toggleButton.setImageResource(R.drawable.icon_reader);
-                }
+            }
         }
     }
 
