@@ -39,14 +39,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Universe extends AppCompatActivity {
+    /*Ключи доступа для обработчика явлений.*/
+    private static final int REQUEST_EXPORT_PROFILE = 200;
+    private static final int REQUEST_IMPORT_PROFILE = 201;
+    /*Ссылки на объекты*/
     private LinearLayout profilesContainer;
     private String currentProfile;
     private List<String> profileNames;
     private View currentOpenPanel = null;
-    private static final int REQUEST_EXPORT_PROFILE = 200;
-    private static final int REQUEST_IMPORT_PROFILE = 201;
     private String pendingExportProfileName;
-
+    /*Метод создания приложения, реализует подготовку явления*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         MainMenu.applyTheme(this);
@@ -58,7 +60,7 @@ public class Universe extends AppCompatActivity {
         loadProfilesList();
         refreshProfiles();
     }
-
+    /*Метод, загружающий список доступных профилей из внутреннего хранилища*/
     private void loadProfilesList() {
         profileNames = new ArrayList<>();
         File[] files = getFilesDir().listFiles();
@@ -71,11 +73,13 @@ public class Universe extends AppCompatActivity {
                 }
             }
         }
+        /*При отсутствии профилей создаёт базовый notes*/
         if (profileNames.isEmpty()) {
             profileNames.add("notes");
             MainMenu.saveNotesToFile(this, "notes");
         }
     }
+    /*Метод, обновляющий список профилей*/
     private void refreshProfiles() {
         profilesContainer.removeAllViews();
         currentOpenPanel = null;
@@ -108,7 +112,8 @@ public class Universe extends AppCompatActivity {
             profilesContainer.addView(itemView);
         }
     }
-
+    /*Метод для создания нового профиля.
+    Вызывает диалог, предлагающий ввести имя профиля.*/
     public void onCreateNewProfile(View view) {
         android.widget.EditText input = new android.widget.EditText(this);
         input.setHint("Имя профиля");
@@ -125,19 +130,11 @@ public class Universe extends AppCompatActivity {
                         Toast.makeText(this, "Профиль с таким именем уже существует", Toast.LENGTH_SHORT).show();
                         return;
                     }
-
-                    // Сохраняем текущие заметки (старый профиль)
                     List<NoteData> oldNotes = new ArrayList<>(MainMenu.notesList);
-
-                    // Временно очищаем список, чтобы сохранить пустой файл для нового профиля
                     MainMenu.notesList.clear();
                     MainMenu.saveNotesToFile(this, newProfile);
-
-                    // Восстанавливаем исходный список заметок (старый профиль)
                     MainMenu.notesList.clear();
                     MainMenu.notesList.addAll(oldNotes);
-
-                    // Добавляем новый профиль в локальный список и обновляем UI
                     profileNames.add(newProfile);
                     refreshProfiles();
                     Toast.makeText(this, "Профиль создан", Toast.LENGTH_SHORT).show();
@@ -145,7 +142,7 @@ public class Universe extends AppCompatActivity {
                 .setNegativeButton("Отмена", null)
                 .show();
     }
-
+    /*Обработчик вызова меню у профиля*/
     public void onClickMenu(View view) {
         LinearLayout buttonPanel = null;
         View current = view;
@@ -166,7 +163,7 @@ public class Universe extends AppCompatActivity {
             currentOpenPanel = null;
         }
     }
-
+    /*Метод, возвращающий ссылку на профиль, для дальнейшей обработки*/
     private View getProfileRoot(View button) {
         View current = button;
         while (current.getParent() != null && current.getParent() != profilesContainer) {
@@ -174,7 +171,7 @@ public class Universe extends AppCompatActivity {
         }
         return current;
     }
-
+    /*Обработчик изменяющий положение профиля, перенося его вверх*/
     public void onClickUp(View view) {
         View profileItem = getProfileRoot(view);
         int position = profilesContainer.indexOfChild(profileItem);
@@ -184,7 +181,7 @@ public class Universe extends AppCompatActivity {
             refreshProfiles();
         }
     }
-
+    /*Обработчик вниз*/
     public void onClickDown(View view) {
         View profileItem = getProfileRoot(view);
         int position = profilesContainer.indexOfChild(profileItem);
@@ -194,7 +191,7 @@ public class Universe extends AppCompatActivity {
             refreshProfiles();
         }
     }
-
+    /*Обработчик, удаляющий профиль. Если это не активный профиль!!!*/
     public void onClickDelete(View view) {
         View profileItem = getProfileRoot(view);
         int position = profilesContainer.indexOfChild(profileItem);
@@ -216,9 +213,8 @@ public class Universe extends AppCompatActivity {
                 .setNegativeButton("Нет", null)
                 .show();
     }
-
+    /*Обработчик экспорта профиля*/
     public void onClickExport(View view) {
-        // Определяем, какой профиль был выбран
         View profileItem = getProfileRoot(view);
         int position = profilesContainer.indexOfChild(profileItem);
         if (position == -1) return;
@@ -230,7 +226,6 @@ public class Universe extends AppCompatActivity {
             Toast.makeText(this, "Файл профиля не найден", Toast.LENGTH_SHORT).show();
             return;
         }
-
         pendingExportProfileName = profileName;
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -238,17 +233,23 @@ public class Universe extends AppCompatActivity {
         intent.putExtra(Intent.EXTRA_TITLE, "profile_" + profileName + ".json");
         startActivityForResult(intent, REQUEST_EXPORT_PROFILE);
     }
+    /*Обработчик импорта профиля*/
     public void onClickImport(View view) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/json");
         startActivityForResult(intent, REQUEST_IMPORT_PROFILE);
     }
+    /*Обработчик нажатия кнопки "Назад"*/
+    public void onClickBack(View view) {
+        finish();
+    }
+    /*Метод, обрабатывающий результаты других явлений*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK || data == null) return;
-
+        /*Ключ экспорта, экспортирует выбранный файл*/
         if (requestCode == REQUEST_EXPORT_PROFILE && pendingExportProfileName != null) {
             Uri uri = data.getData();
             if (uri != null) {
@@ -265,6 +266,7 @@ public class Universe extends AppCompatActivity {
             }
             pendingExportProfileName = null;
         }
+        /*Ключ импорта. Импортирует выбранный файл*/
         else if (requestCode == REQUEST_IMPORT_PROFILE) {
             Uri uri = data.getData();
             if (uri != null) {
@@ -278,7 +280,7 @@ public class Universe extends AppCompatActivity {
             }
         }
     }
-
+    /*Получает оригинальное имя файла*/
     private String getFileNameFromUri(Uri uri) {
         String fileName = null;
         if (uri.getScheme().equals("content")) {
@@ -287,16 +289,14 @@ public class Universe extends AppCompatActivity {
                     int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     if (nameIndex != -1) fileName = cursor.getString(nameIndex);
                 }
-            } catch (Exception e) { /* fallback */ }
+            } catch (Exception e) {}
         }
         if (fileName == null) fileName = uri.getLastPathSegment();
         if (fileName == null) fileName = "imported";
-        // Удаляем расширение .json
         if (fileName.endsWith(".json")) fileName = fileName.substring(0, fileName.length() - 5);
         return fileName;
     }
-
-    // Вспомогательный метод для чтения всего потока
+    /*Вспомогательный метод для чтения всего текста из файла*/
     private String readAllText(InputStream in) throws Exception {
         StringBuilder sb = new StringBuilder();
         java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(in));
@@ -306,8 +306,8 @@ public class Universe extends AppCompatActivity {
         }
         return sb.toString();
     }
+    /*Метод импорта заметки*/
     private void importProfileFromJson(String json, String originalName) {
-        // Проверка, что JSON содержит массив заметок
         Gson gson = new Gson();
         Type type = new TypeToken<List<NoteData>>(){}.getType();
         List<NoteData> notes;
@@ -318,18 +318,16 @@ public class Universe extends AppCompatActivity {
             Toast.makeText(this, "Файл не содержит массива заметок", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        // Формируем базовое имя: "imported_" + originalName
-        String baseName = "imp" + originalName.replace("profile", "");
-        if (baseName.equals("imported_")) baseName = "imported";
-
+        /*Создание имени профиля*/
+        String baseName = originalName.replace("profile", "");
+        if (baseName.equals("")) baseName = "imported";
         String profileName = baseName;
+        /*Добавление числового суффика, если профиль импортирован несколько раз*/
         int counter = 1;
         while (profileNames.contains(profileName)) {
             profileName = baseName + "_" + (counter++);
         }
-
-        // Сохраняем JSON как файл нового профиля
+        /*Сохранение файла*/
         File newFile = new File(getFilesDir(), "notes_" + profileName + ".json");
         try (FileWriter writer = new FileWriter(newFile)) {
             writer.write(json);
@@ -342,8 +340,4 @@ public class Universe extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-    public void onClickBack(View view) {
-        finish();
-    }
-
 }

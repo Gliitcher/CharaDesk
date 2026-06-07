@@ -3,6 +3,9 @@ package com.example.charadesk;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+/*Основной класс для хранения заметки.
+Хранит её заголовок, список блоков и путь к аватару.
+Реализует геттеры и сеттеры.*/
 public class NoteData implements Serializable{
     private String title;
     private List<BlockData> blocks;
@@ -32,7 +35,9 @@ public class NoteData implements Serializable{
         blocks.add(block);
     }
 
-    // Вспомогательный класс для хранения одного блока
+    /*Вспомогательный класс для хранения блоков.
+    Хранит тип блока, титульник, текст и путь к изображению.
+    Реализует геттеры и сеттеры.*/
     public static class BlockData implements Serializable {
         private String type;
         private String title;

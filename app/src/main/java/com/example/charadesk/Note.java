@@ -29,14 +29,16 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 
 public class Note extends AppCompatActivity {
+    /*Ключи запроса*/
+    private static final int REQUEST_PICK_IMAGE = 400;
+    private static final int REQUEST_PICK_IMAGE_REPLACE = 401;
+    private static final int REQUEST_CHANGE_AVATAR = 402;
+    /*Ссылки*/
     private EditText titleText;
     private LinearLayout blocksContainer;
     private NoteData currentNote;
     private int noteIndex;
     private View currentOpenPanelBlock = null;
-    private static final int REQUEST_PICK_IMAGE = 100;
-    private static final int REQUEST_PICK_IMAGE_REPLACE = 101;
-    private static final int REQUEST_CHANGE_AVATAR = 102;
     private NoteData.BlockData pendingImageBlock;
     private NoteData.BlockData replaceImageBlock;
     private ImageView avatarView;
@@ -63,6 +65,7 @@ public class Note extends AppCompatActivity {
         currentNote = MainMenu.notesList.get(noteIndex);
 
         titleText.setText(currentNote.getTitle());
+        /*Слушатель для изменения Заголовка заметки*/
         titleText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -89,7 +92,7 @@ public class Note extends AppCompatActivity {
             setReadOnlyMode();
         }
     }
-
+    /*Метод блокирующий редактирование информации при режиме Читателя*/
     private void setReadOnlyMode() {
         titleText.setEnabled(false);
         titleText.setFocusable(false);
@@ -99,9 +102,8 @@ public class Note extends AppCompatActivity {
         if (addButton != null) addButton.setVisibility(View.GONE);
     }
 
-    // Добавление блока
+    /*Обработчик, добавляющий блок в заметку*/
     public void onClickAddElement(View view) {
-        // Показываем диалог выбора типа блока
         String[] blockTypes = {getString(R.string.single_block), getString(R.string.title_block),
                 getString(R.string.image_block)};
         new AlertDialog.Builder(this, R.style.CustomDialogTheme)
@@ -130,18 +132,19 @@ public class Note extends AppCompatActivity {
                 })
                 .show();
     }
+    /*Метод, вызывающий явление галереи для выбора изображения*/
     private void pickImageForNewBlock(NoteData.BlockData block) {
         pendingImageBlock = block;
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, REQUEST_PICK_IMAGE);
     }
-
+    /*Метод для замены изображения*/
     private void pickImageForReplace(NoteData.BlockData block) {
         replaceImageBlock = block;
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, REQUEST_PICK_IMAGE_REPLACE);
     }
-
+    /*Обработчик результатов явлений*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -149,7 +152,7 @@ public class Note extends AppCompatActivity {
 
         Uri selectedImageUri = data.getData();
         if (selectedImageUri == null) return;
-
+        /*Запрос на выбор изображения*/
         if (requestCode == REQUEST_PICK_IMAGE && pendingImageBlock != null) {
             String savedPath = saveImageToInternalStorage(selectedImageUri);
             if (savedPath != null) {
@@ -163,6 +166,7 @@ public class Note extends AppCompatActivity {
             }
             pendingImageBlock = null;
         }
+        /*Запрос на смену изображения*/
         else if (requestCode == REQUEST_PICK_IMAGE_REPLACE && replaceImageBlock != null) {
             String oldPath = replaceImageBlock.getImagePath();
             if (oldPath != null) new File(oldPath).delete();
@@ -175,6 +179,7 @@ public class Note extends AppCompatActivity {
                 Toast.makeText(this, getString(R.string.error_image_change), Toast.LENGTH_SHORT).show();
             }
             replaceImageBlock = null;
+            /*Запрос смены аватара*/
         } else if (requestCode == REQUEST_CHANGE_AVATAR) {
             String oldPath = currentNote.getAvatarPath();
             if (oldPath != null) new File(oldPath).delete();
@@ -192,6 +197,7 @@ public class Note extends AppCompatActivity {
             }
         }
     }
+    /*Метод, сохраняющий изображение во внутреннее хранилище*/
     private String saveImageToInternalStorage(Uri imageUri) {
         try {
             File imagesDir = new File(getFilesDir(), "images");
@@ -211,11 +217,11 @@ public class Note extends AppCompatActivity {
             return null;
         }
     }
-
+    /*Метод добавляет блоки в зависимости от типа*/
     private void addBlockView(NoteData.BlockData block) {
         View blockView;
         boolean isReader = currentRole.equals(MainMenu.ROLE_READER);
-
+        /*Одиночный блок*/
         if (block.getType().equals("multy")) {
             blockView = LayoutInflater.from(this).inflate(R.layout.note_single_multy, blocksContainer, false);
             EditText editText = blockView.findViewById(R.id.note_text);
@@ -227,6 +233,7 @@ public class Note extends AppCompatActivity {
                 attachTextWatcher(editText, block, "Text");
             }
         }
+        /*Блок с заголовком*/
         else if (block.getType().equals("multiline")) {
             blockView = LayoutInflater.from(this).inflate(R.layout.note_multy, blocksContainer, false);
             EditText editTitle = blockView.findViewById(R.id.title_text);
@@ -243,6 +250,7 @@ public class Note extends AppCompatActivity {
                 attachTextWatcher(editText, block, "Text");
             }
         }
+        /*Блок изображение*/
         else if (block.getType().equals("image")) {
             blockView = LayoutInflater.from(this).inflate(R.layout.note_image, blocksContainer, false);
             ImageView imageView = blockView.findViewById(R.id.block_image);
@@ -272,9 +280,8 @@ public class Note extends AppCompatActivity {
         } else {
             blockView = null;
         }
-
+        /*Скрытие кнопки меню, если режим Читателя*/
         if (blockView != null) {
-            // Управление панелью кнопок (button_panel)
             ImageButton buttonPanel = blockView.findViewById(R.id.note_menu);
             if (buttonPanel != null) {
                 if (isReader) {
@@ -285,7 +292,7 @@ public class Note extends AppCompatActivity {
         }
     }
 
-    // Вспомогательный метод, который вешает TextWatcher на EditText и сохраняет текст в BlockData
+    /*Вспомогательный метод для EditText, который сохраняет текст в BlockData после редактирования*/
     private void attachTextWatcher(EditText editText, NoteData.BlockData block, String type) {
         editText.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -305,7 +312,7 @@ public class Note extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
     }
-
+    /*Обработчик для смены изображения при нажатии*/
     public void onClickChangeImage(View view){
         if (!currentRole.equals(MainMenu.ROLE_READER)) {
             View blockCard = getBlockCardView(view);
@@ -313,7 +320,7 @@ public class Note extends AppCompatActivity {
             pickImageForReplace(currentNote.getBlocks().get(position));
         }
     }
-
+    /*Обработчик смены Аватара*/
     public void onClickChangeAvatar(View view) {
         if (!currentRole.equals(MainMenu.ROLE_READER)) {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -327,7 +334,7 @@ public class Note extends AppCompatActivity {
             }
         }
     }
-
+    /*Обработчик изменения положения вверх*/
     public void onClickUp(View view) {
         View blockCard = getBlockCardView(view);
         int position = blocksContainer.indexOfChild(blockCard);
@@ -337,7 +344,7 @@ public class Note extends AppCompatActivity {
             refreshBlocks();
         }
     }
-
+    /*Обработчик изменения положения вниз*/
     public void onClickDown(View view) {
         View blockCard = getBlockCardView(view);
         int position = blocksContainer.indexOfChild(blockCard);
@@ -347,7 +354,7 @@ public class Note extends AppCompatActivity {
             refreshBlocks();
         }
     }
-
+    /*Обработчик для удаления*/
     public void onClickDelete(View view) {
         View blockCard = getBlockCardView(view);
         int position = blocksContainer.indexOfChild(blockCard);
@@ -364,10 +371,11 @@ public class Note extends AppCompatActivity {
                 .setNegativeButton(getString(R.string.no), null)
                 .show();
     }
-
+    /*Обработчик, отображающий меню блока*/
     public void onClickMenu(View view) {
         View blockCard = getBlockCardView(view);
         LinearLayout buttonPanel = blockCard.findViewById(R.id.button_panel);
+        ImageButton buttonExport = blockCard.findViewById(R.id.export_button);
         if (buttonPanel == null) return;
         if (currentOpenPanelBlock != null && currentOpenPanelBlock != blockCard) {
             LinearLayout oldPanel = currentOpenPanelBlock.findViewById(R.id.button_panel);
@@ -377,13 +385,14 @@ public class Note extends AppCompatActivity {
         }
         if (buttonPanel.getVisibility() == View.GONE) {
             buttonPanel.setVisibility(View.VISIBLE);
+            buttonExport.setVisibility(View.GONE);
             currentOpenPanelBlock = blockCard;
         } else {
             buttonPanel.setVisibility(View.GONE);
             currentOpenPanelBlock = null;
         }
     }
-
+    /*Метод для получения блока*/
     private View getBlockCardView(View button) {
         View parent = (View) button.getParent();
         while (!(parent.getParent() instanceof androidx.cardview.widget.CardView)) {
@@ -391,7 +400,7 @@ public class Note extends AppCompatActivity {
         }
         return (View) parent.getParent();
     }
-
+    /*Метод обновляющий блоки*/
     private void refreshBlocks() {
         blocksContainer.removeAllViews();
         currentOpenPanelBlock = null;

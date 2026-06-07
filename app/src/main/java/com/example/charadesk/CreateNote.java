@@ -19,11 +19,13 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 
 public class CreateNote extends AppCompatActivity {
-    private static final int REQUEST_PICK_AVATAR = 200;
+    /*Ключ вызова для обработки результата явлений*/
+    private static final int REQUEST_PICK_AVATAR = 300;
+    /*Ссылки на объекты*/
     private EditText titleNote;
     private ImageView avatarPreview;
     private String selectedAvatarPath = null;
-
+    /*Метод создания явления, закрепляет ссылки*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         MainMenu.applyTheme(this);
@@ -32,12 +34,12 @@ public class CreateNote extends AppCompatActivity {
         titleNote = findViewById(R.id.note_title);
         avatarPreview = findViewById(R.id.avatar_preview);
     }
-
+    /*Обработчик выбора аватара, открывает галерею*/
     public void onClickSelectAvatar(View view) {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, REQUEST_PICK_AVATAR);
     }
-
+    /*Метод обработки результата явлений*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -53,7 +55,7 @@ public class CreateNote extends AppCompatActivity {
             }
         }
     }
-
+    /*Метод, сохраняющий изображения во внутреннем хранилище*/
     private String saveImageToInternalStorage(Uri imageUri, String prefix) {
         try {
             File imagesDir = new File(getFilesDir(), "images");
@@ -73,7 +75,7 @@ public class CreateNote extends AppCompatActivity {
             return null;
         }
     }
-
+    /*Обработчик, сохраняющий новую заметку*/
     public void onClickSave(View view) {
         String title = titleNote.getText().toString().trim();
         if (title.isEmpty()) title = getString(R.string.untitle);
@@ -85,7 +87,7 @@ public class CreateNote extends AppCompatActivity {
         if (selectedAvatarPath != null) {
             newNote.setAvatarPath(selectedAvatarPath);
         }
-
+        /*Применение шаблона заметки*/
         switch (selectedTemplate) {
             case 1: // Базовый
                 newNote.addBlock(new NoteData.BlockData("multy", ""));
@@ -115,7 +117,7 @@ public class CreateNote extends AppCompatActivity {
                 newNote.addBlock(new NoteData.BlockData("multiline", "Эволюция", ""));
                 newNote.addBlock(new NoteData.BlockData("multiline", "Особенности", ""));
                 break;
-            default: // Пустой – блоков не добавляем
+            default: // Пустой
                 break;
         }
 
@@ -131,6 +133,7 @@ public class CreateNote extends AppCompatActivity {
         setResult(RESULT_OK, resultIntent);
         finish();
     }
+    /*Обработчик кнопки "Назад"*/
     public void onClickBack(View view) {
         finish();
     }

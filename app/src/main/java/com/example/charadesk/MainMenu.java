@@ -47,20 +47,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainMenu extends AppCompatActivity {
-    private static final int REQUEST_CREATE_NOTE = 1;
-    private static final int REQUEST_EXPORT = 100;
-    private static final int REQUEST_IMPORT = 101;
-    private static final int REQUEST_ACCOUNTS = 300;
-    private static final int REQUEST_SAVE_PDF = 400;
-    private PdfDocument pendingPdfDocument;
+    /*Коды Доступа.
+    Предназначены для определения функции при ожидания результата из другого явления*/
+    private static final int REQUEST_CREATE_NOTE = 100;
+    private static final int REQUEST_EXPORT = 101;
+    private static final int REQUEST_IMPORT = 102;
+    private static final int REQUEST_ACCOUNTS = 103;
+    private static final int REQUEST_SAVE_PDF = 104;
+    /*Ключевые слова.
+    Предоставляют общее представление о функциях в программе: Название файла сохранения, профиля, сохранения в SharedPreference и т.д.*/
     public static final String EXTRA_PROFILE_NAME = "profile_name";
-
     private String currentProfile = "notes";
-    public static List<NoteData> notesList = new ArrayList<>();
-    private RecyclerView recyclerView;
-    private NoteAdapter adapter;
-    private View currentOpenPanelNote = null;
-    private String pendingExportJson = null;
     public static final String PREFS_NAME = "settings";
     public static final String KEY_ROLE = "user_role";
     public static final String KEY_NOTES = "saved_notes";
@@ -69,10 +66,25 @@ public class MainMenu extends AppCompatActivity {
     public static final String KEY_PASSWORD = null;
     public static final String ROLE_WRITER = "writer";
     public static final String ROLE_READER = "reader";
+    /*Объекты.
+    Предназначены для хранения ссылок и дополнительной информации в коде*/
+    public static List<NoteData> notesList = new ArrayList<>();
+    private RecyclerView recyclerView;
+    private NoteAdapter adapter;
+    private View currentOpenPanelNote = null;
+    private String pendingExportJson = null;
     private String currentRole;
     private static String currentTheme;
     private static String password;
+    private PdfDocument pendingPdfDocument;
 
+    /*----------------------------------------------------
+    -------------------СТАРТОВЫЕ МЕТОДЫ-------------------
+    ------------------------------------------------------*/
+    /*Запускают начальные функции для корректной работы приложения,
+    представляют всё необходимое для этого*/
+
+    //Функция изменения темы приложения, в зависимости от выбранной пользователем.
     public static void applyTheme(Context context){
         if (currentTheme.equals("LAVENDER")) {
             context.setTheme(R.style.Theme_Lavander);
@@ -89,6 +101,8 @@ public class MainMenu extends AppCompatActivity {
         }
     }
 
+    /*Метод, запускающий при создании явления.
+    Производит загрузку данных из SharedPreferences, применение темы и закрепления ссылок на объекты*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -105,7 +119,6 @@ public class MainMenu extends AppCompatActivity {
 
         TextView universes = findViewById(R.id.universe);
         universes.setText(currentProfile);
-
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new NoteAdapter();
@@ -115,14 +128,14 @@ public class MainMenu extends AppCompatActivity {
         refreshNotesList();
         updateUIBasedOnRole();
     }
-
+    /*Функция для обновления списка заметок*/
     private void refreshNotesList() {
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
         currentOpenPanelNote = null;
     }
-
+    /*Класс для работы RecycleView*/
     private class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         @NonNull
         @Override
@@ -130,11 +143,12 @@ public class MainMenu extends AppCompatActivity {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.note_item, parent, false);
             return new ViewHolder(view);
         }
-
+        /*Метод, добавляющий заметку в список*/
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             NoteData note = notesList.get(position);
-            holder.noteText.setText(note.getTitle());
+            holder.noteText.setText(note.getTitle()); //Создание заголовка
+            //Отрисовка аватара
             if (note.getAvatarPath() != null) {
                 File avatarFile = new File(note.getAvatarPath());
                 if (avatarFile.exists()) {
@@ -148,11 +162,13 @@ public class MainMenu extends AppCompatActivity {
             } else {
                 holder.avatar.setImageResource(R.drawable.ic_image_placeholder);
             }
+            //Скрытие кнопки открытия меню, при роли Читателя
             if (currentRole.equals(ROLE_READER)) {
                 holder.menuButton.setVisibility(View.GONE);
             } else {
                 holder.menuButton.setVisibility(View.VISIBLE);
             }
+            //Создание слушателя, реагирующего на клик по заметке. Упаковка нужных данных и переход на Явление с заметкой.
             holder.itemView.setOnClickListener(v -> {
                 Intent intent = new Intent(MainMenu.this, Note.class);
                 intent.putExtra("note_index", position);
@@ -162,12 +178,12 @@ public class MainMenu extends AppCompatActivity {
             });
             holder.menuButton.setOnClickListener(v -> onClickMenu(holder.menuButton));
         }
-
+        /*Метод для получения размера списка*/
         @Override
         public int getItemCount() {
             return notesList.size();
         }
-
+        /*Хранилище ссылок на заголовок, аватар и кнопку меню*/
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView noteText;
             ImageView avatar;
@@ -181,11 +197,13 @@ public class MainMenu extends AppCompatActivity {
         }
     }
 
-    public void onClickCreateNewNote(View view) {
-        Intent intent = new Intent(this, CreateNote.class);
-        startActivityForResult(intent, REQUEST_CREATE_NOTE);
-    }
+    /*-----------------------------------------------------
+    ------------------ОСНОВНОЙ ФУНКЦИОНАЛ------------------
+    -----------------------------------------------------*/
+    /*Предоставляет методы для сохранения, загрузки и обработки работы с заметками*/
 
+    /*Сохраняет текущий список заметок во внутреннем хранилище в формате json.
+    Использует для этого библиотеку gson. В основном вызывается из других классов*/
     public static void saveNotesToFile(Context context, String profileName) {
         String fileName = "notes_" + profileName + ".json";
         try (FileWriter writer = new FileWriter(new File(context.getFilesDir(), fileName))) {
@@ -195,11 +213,11 @@ public class MainMenu extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
+    /*Упрощённый вызов метода для сохранения списка заметок. В основном используется в MainMenu*/
     private void saveCurrentProfile() {
         saveNotesToFile(this, currentProfile);
     }
-
+    /*Загружает список заметок из файла профиля внутреннего хранилища.*/
     private void loadNotesFromFile(String profileName) {
         String fileName = "notes_" + profileName + ".json";
         File file = new File(getFilesDir(), fileName);
@@ -217,15 +235,20 @@ public class MainMenu extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
+    /*Метод для вызова методов сохранения заметок и обновления списка заметок*/
     private void saveAndRefresh() {
         saveCurrentProfile();
         refreshNotesList();
     }
-
+    /*Метод обработки результатов из других активностей.
+    Использует коды обработки для выполнения определённых действий.*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        /*Остановка обработки в негативном случае*/
+        if (resultCode != RESULT_OK || data == null) return;
+        /*Код создания новой заметки.
+        Получения информации о ней и сохранение в списке*/
         if (requestCode == REQUEST_CREATE_NOTE && resultCode == RESULT_OK) {
             String title = data.getStringExtra("note_title");
             String avatarPath = data.getStringExtra("avatar_path");
@@ -246,7 +269,7 @@ public class MainMenu extends AppCompatActivity {
             notesList.add(newNote);
             saveAndRefresh();
         }
-        if (resultCode != RESULT_OK || data == null) return;
+        /*Код экспорта заметки.*/
         if (requestCode == REQUEST_EXPORT && pendingExportJson != null) {
             Uri uri = data.getData();
             if (uri != null) {
@@ -260,6 +283,8 @@ public class MainMenu extends AppCompatActivity {
                 }
                 pendingExportJson = null;
             }
+        /*Код импорта заметки
+        Чтение файла, его десериализация и добавление в список*/
         } else if (requestCode == REQUEST_IMPORT) {
             Uri uri = data.getData();
             if (uri != null) {
@@ -280,6 +305,8 @@ public class MainMenu extends AppCompatActivity {
                 }
             }
         }
+        /*Код для смены профиля.
+        Сохраняет предыдущий профиль, изменяет название текущего, обновляет список*/
         if (requestCode == REQUEST_ACCOUNTS && resultCode == RESULT_OK && data != null) {
             String newProfile = data.getStringExtra(EXTRA_PROFILE_NAME);
             if (newProfile != null && !newProfile.equals(currentProfile)) {
@@ -294,6 +321,7 @@ public class MainMenu extends AppCompatActivity {
                 Toast.makeText(this, getString(R.string.universe_changed) + currentProfile, Toast.LENGTH_SHORT).show();
             }
         }
+        /*Код для записи ПДФ файла. Записывает информацию в файлике ПДФ.*/
         else if (requestCode == REQUEST_SAVE_PDF && pendingPdfDocument != null) {
             Uri uri = data.getData();
             if (uri != null) {
@@ -309,64 +337,31 @@ public class MainMenu extends AppCompatActivity {
             pendingPdfDocument = null;
         }
     }
+    /*----------------------------------------------
+    ------------------МЕТОДЫ КЛИКА------------------
+    ------------------------------------------------*/
+    /*Производят действия в зависимости от нажатой кнопки*/
 
+    /*Метод, возвращающий заметку, используется в обработчиках нажатия кнопок.*/
+    private View getNoteCardView(View button) {
+        View parent = (View) button.getParent();
+        while (!(parent instanceof androidx.cardview.widget.CardView)) {
+            parent = (View) parent.getParent();
+        }
+        return parent;
+    }
+    /*Обработчик создания новой заметки - переход на другое явление*/
+    public void onClickCreateNewNote(View view) {
+        Intent intent = new Intent(this, CreateNote.class);
+        startActivityForResult(intent, REQUEST_CREATE_NOTE);
+    }
+    /*Обработчик смены профиля, переход на другое явление.*/
     public void onClickChangeUniverse(View view) {
         Intent intent = new Intent(this, Universe.class);
         intent.putExtra("current_profile", currentProfile);
         startActivityForResult(intent, REQUEST_ACCOUNTS);
     }
-
-    public void onClickUp(View view) {
-        View noteCard = getNoteCardView(view);
-        int position = recyclerView.getChildAdapterPosition(noteCard);
-        if (position > 0) {
-            if (currentOpenPanelNote != null) {
-                LinearLayout panel = currentOpenPanelNote.findViewById(R.id.button_panel);
-                if (panel != null) panel.setVisibility(View.GONE);
-                currentOpenPanelNote = null;
-            }
-            NoteData note = notesList.remove(position);
-            notesList.add(position - 1, note);
-            adapter.notifyDataSetChanged();
-            saveCurrentProfile();
-        }
-    }
-
-    public void onClickDown(View view) {
-        View noteCard = getNoteCardView(view);
-        int position = recyclerView.getChildAdapterPosition(noteCard);
-        if (position < notesList.size() - 1) {
-            if (currentOpenPanelNote != null) {
-                LinearLayout panel = currentOpenPanelNote.findViewById(R.id.button_panel);
-                if (panel != null) panel.setVisibility(View.GONE);
-                currentOpenPanelNote = null;
-            }
-            NoteData note = notesList.remove(position);
-            notesList.add(position + 1, note);
-            adapter.notifyDataSetChanged();
-            saveCurrentProfile();
-        }
-    }
-
-    public void onClickDelete(View view) {
-        View noteCard = getNoteCardView(view);
-        int position = recyclerView.getChildAdapterPosition(noteCard);
-        new AlertDialog.Builder(this, R.style.CustomDialogTheme)
-                .setTitle(getString(R.string.delete_note))
-                .setPositiveButton(getString(R.string.yes), (dialog, which) -> {
-                    if (currentOpenPanelNote != null) {
-                        LinearLayout panel = currentOpenPanelNote.findViewById(R.id.button_panel);
-                        if (panel != null) panel.setVisibility(View.GONE);
-                        currentOpenPanelNote = null;
-                    }
-                    notesList.remove(position);
-                    adapter.notifyDataSetChanged();
-                    saveCurrentProfile();
-                })
-                .setNegativeButton(getString(R.string.no), null)
-                .show();
-    }
-
+    /*Метод для отображения меню действий с заметкой (Вверх, вниз, удалить, экспорт, пдф)*/
     public void onClickMenu(View view) {
         View noteCard = getNoteCardView(view);
         LinearLayout buttonPanel = noteCard.findViewById(R.id.button_panel);
@@ -385,7 +380,60 @@ public class MainMenu extends AppCompatActivity {
             currentOpenPanelNote = null;
         }
     }
-
+    /*Обработчик обновления списка заметок.
+    Выбранная заметка перемещается вверх, обновляет позицию и список заметок*/
+    public void onClickUp(View view) {
+        View noteCard = getNoteCardView(view);
+        int position = recyclerView.getChildAdapterPosition(noteCard);
+        if (position > 0) {
+            if (currentOpenPanelNote != null) {
+                LinearLayout panel = currentOpenPanelNote.findViewById(R.id.button_panel);
+                if (panel != null) panel.setVisibility(View.GONE);
+                currentOpenPanelNote = null;
+            }
+            NoteData note = notesList.remove(position);
+            notesList.add(position - 1, note);
+            adapter.notifyDataSetChanged();
+            saveCurrentProfile();
+        }
+    }
+    /*Обработчик, который перемещает заметку вниз по списку.*/
+    public void onClickDown(View view) {
+        View noteCard = getNoteCardView(view);
+        int position = recyclerView.getChildAdapterPosition(noteCard);
+        if (position < notesList.size() - 1) {
+            if (currentOpenPanelNote != null) {
+                LinearLayout panel = currentOpenPanelNote.findViewById(R.id.button_panel);
+                if (panel != null) panel.setVisibility(View.GONE);
+                currentOpenPanelNote = null;
+            }
+            NoteData note = notesList.remove(position);
+            notesList.add(position + 1, note);
+            adapter.notifyDataSetChanged();
+            saveCurrentProfile();
+        }
+    }
+    /*Обработчик удаляющий заметку. Вызывает диалог подтверждения и удаляет заметку. Полностью. Навсегда.*/
+    public void onClickDelete(View view) {
+        View noteCard = getNoteCardView(view);
+        int position = recyclerView.getChildAdapterPosition(noteCard);
+        new AlertDialog.Builder(this, R.style.CustomDialogTheme)
+                .setTitle(getString(R.string.delete_note))
+                .setPositiveButton(getString(R.string.yes), (dialog, which) -> {
+                    if (currentOpenPanelNote != null) {
+                        LinearLayout panel = currentOpenPanelNote.findViewById(R.id.button_panel);
+                        if (panel != null) panel.setVisibility(View.GONE);
+                        currentOpenPanelNote = null;
+                    }
+                    notesList.remove(position);
+                    adapter.notifyDataSetChanged();
+                    saveCurrentProfile();
+                })
+                .setNegativeButton(getString(R.string.no), null)
+                .show();
+    }
+    /*Обработчик экспорта заметки в формате JSON.
+    Запускает явление создания документа.*/
     public void onClickExport(View view) {
         View noteCard = getNoteCardView(view);
         int position = recyclerView.getChildAdapterPosition(noteCard);
@@ -400,18 +448,25 @@ public class MainMenu extends AppCompatActivity {
         pendingExportJson = json;
         startActivityForResult(intent, REQUEST_EXPORT);
     }
-
+    /*Метод импортирования файла из формата JSON, запускает диалог открытия документа*/
+    public void onClickImport(View view) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        startActivityForResult(intent, REQUEST_IMPORT);
+    }
+    /*Обработчик экспорта в формате PDF*/
     public void onClickPDF(View view) {
         View noteCard = getNoteCardView(view);
         int position = recyclerView.getChildAdapterPosition(noteCard);
         if (position == -1) return;
         NoteData note = notesList.get(position);
-
+        /*Создание документа, его размеров*/
         PdfDocument pdfDocument = new PdfDocument();
         PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create();
         PdfDocument.Page page = pdfDocument.startPage(pageInfo);
         Canvas canvas = page.getCanvas();
-
+        /*Настройка документа: Отступ, шрифт, цвет*/
         float x = 50;
         float y = 50;
         float pageWidth = pageInfo.getPageWidth();
@@ -420,7 +475,7 @@ public class MainMenu extends AppCompatActivity {
         Paint paint = new Paint();
         paint.setColor(Color.BLACK);
         paint.setTextSize(14);
-
+        /*Отрисовка аватара, при его наличии.*/
         Bitmap avatarBitmap = null;
         if (note.getAvatarPath() != null) {
             File avatarFile = new File(note.getAvatarPath());
@@ -444,10 +499,11 @@ public class MainMenu extends AppCompatActivity {
         y += lineHeight * 2;
         paint.setTextSize(14);
         paint.setTypeface(Typeface.DEFAULT);
-
+        /*Цикл, отрисовывающий блоки заметки по порядку.*/
         for (NoteData.BlockData block : note.getBlocks()) {
             String blockTitle = block.getTitle();
             String blockText = block.getText();
+            /*Отрисовка заголовков*/
             if (blockTitle != null && !blockTitle.isEmpty()) {
                 paint.setTypeface(Typeface.DEFAULT_BOLD);
                 paint.setTextSize(18);
@@ -456,6 +512,7 @@ public class MainMenu extends AppCompatActivity {
                 paint.setTypeface(Typeface.DEFAULT);
                 paint.setTextSize(14);
             }
+            /*Отрисовка блоков изображения*/
             if ("image".equals(block.getType()) && block.getImagePath() != null) {
                 File imgFile = new File(block.getImagePath());
                 if (imgFile.exists()) {
@@ -483,6 +540,7 @@ public class MainMenu extends AppCompatActivity {
                     }
                 }
             }
+            /*Отрисовка основного содержания блока*/
             if (blockText != null && !blockText.isEmpty()) {
                 List<String> lines = splitText(blockText, paint, usableWidth);
                 for (String line : lines) {
@@ -506,15 +564,16 @@ public class MainMenu extends AppCompatActivity {
         }
 
         pdfDocument.finishPage(page);
-
+        /*Переход к явлению сохранения документа*/
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/pdf");
-        intent.putExtra(Intent.EXTRA_TITLE, "note_" + note.getTitle() + ".pdf");
+        intent.putExtra(Intent.EXTRA_TITLE, note.getTitle() + ".pdf");
         startActivityForResult(Intent.createChooser(intent, "Сохранить PDF"), REQUEST_SAVE_PDF);
         pendingPdfDocument = pdfDocument;
     }
-
+    /*Вспомогательный метод для разбивки длинного текста в PDF файле,
+    для корректного отображения*/
     private List<String> splitText(String text, Paint paint, float maxWidth) {
         List<String> lines = new ArrayList<>();
         String[] words = text.split(" ");
@@ -532,14 +591,7 @@ public class MainMenu extends AppCompatActivity {
         if (currentLine.length() > 0) lines.add(currentLine.toString());
         return lines;
     }
-
-    public void onClickImport(View view) {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/json");
-        startActivityForResult(intent, REQUEST_IMPORT);
-    }
-
+    /*Обработчик изменения темы. Запускает соответствующий диалог*/
     public void onClickChangeTheme(View view){
         String[] theme = {getString(R.string.lavender), getString(R.string.hibiscus),
                 getString(R.string.molucella),getString(R.string.dandelion),
@@ -567,26 +619,8 @@ public class MainMenu extends AppCompatActivity {
                 })
                 .show();
     }
-
-    private View getNoteCardView(View button) {
-        View parent = (View) button.getParent();
-        while (!(parent instanceof androidx.cardview.widget.CardView)) {
-            parent = (View) parent.getParent();
-        }
-        return parent;
-    }
-
-    private void updateRoleIcon() {
-        ImageButton toggleButton = findViewById(R.id.button_toggle_role);
-        if (toggleButton != null) {
-            if (currentRole.equals(ROLE_READER)) {
-                toggleButton.setImageResource(R.drawable.icon_writter);
-            } else {
-                toggleButton.setImageResource(R.drawable.icon_reader);
-            }
-        }
-    }
-
+    /*Обработчик смены роли пользователя.
+    Задание пароля и его проверка*/
     public void onClickToggleRole(View view) {
         android.widget.EditText input = new android.widget.EditText(this);
         if (currentRole.equals(ROLE_WRITER)) {
@@ -614,7 +648,18 @@ public class MainMenu extends AppCompatActivity {
                     .show();
         }
     }
-
+    /*Метод для обновелния иконки Ролей*/
+    private void updateRoleIcon() {
+        ImageButton toggleButton = findViewById(R.id.button_toggle_role);
+        if (toggleButton != null) {
+            if (currentRole.equals(ROLE_READER)) {
+                toggleButton.setImageResource(R.drawable.icon_writter);
+            } else {
+                toggleButton.setImageResource(R.drawable.icon_reader);
+            }
+        }
+    }
+    /*Метод изменяющий роль и обновляющий всё явление*/
     public void applySwitch(){
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                 .edit()
@@ -625,11 +670,11 @@ public class MainMenu extends AppCompatActivity {
         Toast.makeText(this, currentRole.equals(ROLE_READER) ? "Режим чтения" : "Режим редактирования", Toast.LENGTH_SHORT).show();
         recreate();
     }
-
+    /*Метод, сбрасывающий пароль.*/
     public static void iforget(){
-        password = "0";
+        password = "";
     }
-
+    /*Метод, обновляющий весь интерфейс в зависимости от роли. Скрывает практически все кнопки при роли читателя*/
     private void updateUIBasedOnRole() {
         ImageButton btnCreate = findViewById(R.id.button_add);
         ImageButton btnImport = findViewById(R.id.button_import);
@@ -647,7 +692,7 @@ public class MainMenu extends AppCompatActivity {
             if (btnTheme != null) btnTheme.setVisibility(View.VISIBLE);
         }
     }
-
+    /*Сохранение профиля при закрытии приложения*/
     @Override
     public void onStop(){
         super.onStop();
